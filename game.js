@@ -106,7 +106,7 @@ const OBSTACLE_TYPES = ["tree", "rock"];
 
 // Text the NPC says when the player walks close enough, in Room 2.
 const NPC_DIALOGUE =
-  "ik i am a lil crazy but can we unbreakup my love? I love you and I'd rather have our time apart being your gf than single, so will you be mine again?";
+  "i love all our memories and i love you , can we unbreak up pls? can u be mine again ? 🐰";
 
 // How close (in pixels) the player must be to the NPC for the speech
 // (and floating hearts) to show.
