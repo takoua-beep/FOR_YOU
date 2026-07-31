@@ -106,7 +106,7 @@ const OBSTACLE_TYPES = ["tree", "rock"];
 
 // Text the NPC says when the player walks close enough, in Room 2.
 const NPC_DIALOGUE =
-  "i love our memories and i love you , can we unbreak up pls ?🐰";
+  "ik i am a lil crazy but can we unbreakup my love? I love you and I'd rather have our time apart being your gf than single, so will you be mine again?";
 
 // How close (in pixels) the player must be to the NPC for the speech
 // (and floating hearts) to show.
@@ -327,6 +327,7 @@ class Room1Scene extends Phaser.Scene {
 
   showCollectPopup(message) {
     this.popupOpen = true;
+    this.popupCanClose = false; // must release movement keys before it can close
     this.popupText.setText(message);
     this.popupContainer.setVisible(true);
   }
@@ -371,14 +372,26 @@ class Room1Scene extends Phaser.Scene {
     const up = controls.up || this.cursors.up.isDown;
     const down = controls.down || this.cursors.down.isDown;
 
-    // As soon as the player presses any movement direction, dismiss the
-    // collect popup (if one is showing).
-    if (this.popupOpen && (left || right || up || down)) {
-      this.closeCollectPopup();
+    // Dismiss the collect popup only on a FRESH key press, not just because
+    // a movement key happens to still be held down (e.g. you were walking
+    // into the collectible when it opened -- that used to close the popup
+    // in the same frame it appeared, so the text never showed).
+    const anyMoveHeld = left || right || up || down;
+    if (this.popupOpen) {
+      if (!this.popupCanClose) {
+        // Wait for the player to release all movement keys first.
+        if (!anyMoveHeld) this.popupCanClose = true;
+      } else if (anyMoveHeld) {
+        this.closeCollectPopup();
+      }
     }
 
     // Reset velocity each frame, then apply based on held directions.
     this.player.setVelocity(0);
+
+    // Freeze the player while a collect popup is showing, so you can't
+    // wander into more items (or off the item) before reading it.
+    if (this.popupOpen) return;
 
     let vx = 0;
     let vy = 0;
@@ -450,8 +463,9 @@ class Room2Scene extends Phaser.Scene {
       .setDepth(100)
       .setAlpha(0); // start invisible
 
-    // ---- Player (re-spawn near the entrance door) ----
-    this.player = this.physics.add.sprite(110, 260, "player");
+    // ---- Player (re-spawn near the entrance door, but clear of the
+    // invisible doorBack trigger zone so it doesn't fire immediately) ----
+    this.player = this.physics.add.sprite(170, 260, "player");
     this.player.setCollideWorldBounds(true);
     this.player.body.setSize(this.player.width * 0.6, this.player.height * 0.5);
     this.player.body.setOffset(this.player.width * 0.2, this.player.height * 0.45);
